@@ -5,15 +5,34 @@
 
 // Core dependencies
 const http = require('http')
+const https = require('https')
 const url = require('url')
 const StringDecoder = require('string_decoder').StringDecoder
+const fs = require('fs')
 
 // Dependencies
 const config = require('./config')
 
-// The server should respond to all requests with a string
-const server = http.createServer((req, res) => {
-  
+// Define the handlers
+const handlers = {
+  sample: (data, callback) => {
+    // Callback a http status code, and a payload object
+    callback(406, {name: 'sample handler'})
+  }
+}
+
+// Not found handler
+const notFoundHandler = (data, callback) => {
+  callback(404)
+}
+
+// Define a request router
+const router = {
+  sample: handlers.sample
+}
+
+// All the server logic for both http and https server
+const unifiedServer = (req, res) => {
   // Get the URL and parse it
   const parsedUrl = url.parse(req.url, true)
 
@@ -67,27 +86,24 @@ const server = http.createServer((req, res) => {
       console.log('Returning this response: ', statusCode, payloadString)
     })
   })
+}
+
+// Instantiate the HTTP server
+const httpServer = http.createServer(unifiedServer)
+
+// Instantiate the HTTPS server
+const httpsServerOptions = {
+  key: fs.readFileSync('./https/key.pem'),
+  cert: fs.readFileSync('./https/cert.pem')
+}
+const httpsServer = https.createServer(httpsServerOptions, unifiedServer)
+
+// Start the HTTP server
+httpServer.listen(config.httpPort, () => {
+  console.log(`The server is listening for http traffic on port ${config.httpPort}`)
 })
 
-// Start the server
-server.listen(config.port, () => {
-  console.log(`The server is listening on port ${config.port} in ${config.envName} mode`)
+// Start the HTTPS server
+httpsServer.listen(config.httpsPort, () => {
+  console.log(`The server is listening for https traffic on port ${config.httpsPort}`)
 })
-
-// Define the handlers
-const handlers = {
-  sample: (data, callback) => {
-    // Callback a http status code, and a payload object
-    callback(406, {name: 'sample handler'})
-  }
-}
-
-// Not found handler
-const notFoundHandler = (data, callback) => {
-  callback(404)
-}
-
-// Define a request router
-const router = {
-  sample: handlers.sample
-}
