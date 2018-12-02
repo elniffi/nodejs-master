@@ -15,9 +15,8 @@ const config = require('./config')
 
 // Define the handlers
 const handlers = {
-  sample: (data, callback) => {
-    // Callback a http status code, and a payload object
-    callback(406, {name: 'sample handler'})
+  ping: (data, callback) => {
+    callback(200)
   }
 }
 
@@ -28,7 +27,7 @@ const notFoundHandler = (data, callback) => {
 
 // Define a request router
 const router = {
-  sample: handlers.sample
+  ping: handlers.ping
 }
 
 // All the server logic for both http and https server
