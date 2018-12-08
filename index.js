@@ -12,22 +12,14 @@ const fs = require('fs')
 
 // Dependencies
 const config = require('./config')
-
-// Define the handlers
-const handlers = {
-  ping: (data, callback) => {
-    callback(200)
-  }
-}
-
-// Not found handler
-const notFoundHandler = (data, callback) => {
-  callback(404)
-}
+const {
+  ping,
+  notFoundHandler
+} = require('./lib/handlers')
 
 // Define a request router
 const router = {
-  ping: handlers.ping
+  ping
 }
 
 // All the server logic for both http and https server
