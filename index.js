@@ -14,12 +14,29 @@ const fs = require('fs')
 const config = require('./config')
 const {
   ping,
-  notFoundHandler
+  users
 } = require('./lib/handlers')
 
 // Define a request router
 const router = {
-  ping
+  ping,
+  users
+}
+
+const sender = (res, statusCode = 200, payload = {}) => {
+  // Convert the payload to a string
+  const payloadString = JSON.stringify(payload)
+
+  // Return the response
+  res.setHeader('Content-Type', 'application/json')
+  res.writeHead(statusCode)
+
+  // Only send payload if there is anything
+  if (payloadString !== '{}') {
+    res.end(payloadString)
+  } else {
+    res.end()
+  }
 }
 
 // All the server logic for both http and https server
@@ -51,9 +68,6 @@ const unifiedServer = (req, res) => {
   req.on('end', () => {
     buffer += decoder.end()
 
-    // Choose the handler this request should go to. If one is not found use the notFound handler
-    const choosenHandler = (router[trimmedPath]) ? router[trimmedPath] : notFoundHandler
-
     //Construct the data object to send to the handler
     const data = {
       path: trimmedPath,
@@ -63,19 +77,22 @@ const unifiedServer = (req, res) => {
       headers
     }
 
-    // Route the request to the handler specified in the router
-    choosenHandler(data, (statusCode = 200, payload = {}) => {
-      // Convert the payload to a string
-      const payloadString = JSON.stringify(payload)
+    const boundSender = sender.bind(null, res)
 
-      // Return the response
-      res.setHeader('Content-Type', 'application/json')
-      res.writeHead(statusCode)
-      res.end(payloadString)
+    // if path is not defined send 404
+    if (!router[trimmedPath]) {
+      return boundSender(404)
+    }
+    
+    // if method is not supported on path send 405
+    if (!router[trimmedPath][method]) {
+      return boundSender(405) 
+    }
 
-      // Log the response to the request
-      console.log('Returning this response: ', statusCode, payloadString)
-    })
+    const handler = router[trimmedPath][method]
+
+    // Route the request to the found handler
+    handler(data, boundSender)
   })
 }
 
