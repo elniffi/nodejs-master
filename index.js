@@ -66,18 +66,29 @@ const unifiedServer = (req, res) => {
   })
 
   req.on('end', () => {
+  
     buffer += decoder.end()
 
-    //Construct the data object to send to the handler
+    let payload
+
+    const boundSender = sender.bind(null, res)
+
+    // assume payload is json string
+    try {
+      payload = JSON.parse(buffer)
+    } catch (error) {
+      return boundSender(400)
+    }
+
+    // construct the data object to send to the handler
     const data = {
       path: trimmedPath,
       query: queryStringObject,
-      data: buffer,
+      payload,
       method,
       headers
     }
 
-    const boundSender = sender.bind(null, res)
 
     // if path is not defined send 404
     if (!router[trimmedPath]) {
