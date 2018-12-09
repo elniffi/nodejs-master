@@ -15,7 +15,7 @@ const config = require('./config')
 const {
   ping,
   users
-} = require('./lib/handlers')
+} = require('./handlers')
 
 // Define a request router
 const router = {
@@ -24,18 +24,19 @@ const router = {
 }
 
 const sender = (res, statusCode = 200, payload = {}) => {
-  // Convert the payload to a string
+  // Convert the payload to a json string
   const payloadString = JSON.stringify(payload)
 
-  // Return the response
-  res.setHeader('Content-Type', 'application/json')
-  res.writeHead(statusCode)
-
-  // Only send payload if there is anything
+  // If there was no payload provided
   if (payloadString !== '{}') {
+    res.setHeader('Content-Type', 'application/json')
+    res.writeHead(statusCode)
     res.end(payloadString)
   } else {
-    res.end()
+    // If no payload is given, send back the standard string for the given http code
+    res.setHeader('Content-Type', 'text/plain')
+    res.writeHead(statusCode)
+    res.end(http.STATUS_CODES[statusCode])
   }
 }
 
@@ -74,6 +75,7 @@ const unifiedServer = (req, res) => {
     const boundSender = sender.bind(null, res)
 
     // assume payload is json string
+    // TODO: What if there is no payload?!
     try {
       payload = JSON.parse(buffer)
     } catch (error) {

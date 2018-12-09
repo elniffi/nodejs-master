@@ -8,12 +8,14 @@ const environments = {
   staging: {
     envName: 'staging',
     httpPort: 3040,
-    httpsPort: 3041
+    httpsPort: 3041,
+    hashingSecret: 'thisIsASecret'
   },
   production: {
     envName: 'production',
     httpPort: 80,
-    httpsPort: 443
+    httpsPort: 443,
+    hashingSecret: 'thisIsAlsoASecret'
   }
 } 
 

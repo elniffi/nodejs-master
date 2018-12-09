@@ -8,7 +8,7 @@ const fs = require('fs')
 const path = require('path')
 
 // Base directory of the data folder
-const baseDir = path.join(__dirname, '../.data/')
+const baseDir = path.join(__dirname, '.data/')
 
 const buildFilePath = (directory, filename) => 
   path.join(baseDir, directory, `/${filename}.json`)
