@@ -61,6 +61,7 @@ const userGetValidationConfig = [
   phoneValidation
 ]
 
+//TODO: Get, Update and Delete should only work for authenticated users on their own user only
 module.exports = {
   // Required data: firstName, lastName, phone, password, tosAgreement
   // Optional data: none
@@ -134,8 +135,16 @@ module.exports = {
       }
     })
   },
+  // Required data: phone
+  // Optional data: firstName, lastName, password, tosAgreement (at least one must be specified)
   put: (data, callback) => {
-    callback(200)
+    
+
+
+
+
+
+    
   },
   delete: (data, callback) => {
     callback(200)
