@@ -13,6 +13,15 @@ const {
   validate
 } = require('../validation')
 
+const phoneValidation = {
+  key: 'phone',
+  requirements: [
+    isRequired,
+    isString, 
+    (data) => data.length === 10
+  ]
+}
+
 const usersPostValidationConfig = [
   {
     key: 'firstName',
@@ -30,14 +39,7 @@ const usersPostValidationConfig = [
       hasLength
     ]
   },
-  {
-    key: 'phone',
-    requirements: [
-      isRequired,
-      isString, 
-      (data) => data.length === 10
-    ]
-  },
+  phoneValidation,
   {
     key: 'password',
     requirements: [
@@ -55,6 +57,9 @@ const usersPostValidationConfig = [
     ]
   }  
 ]       
+const userGetValidationConfig = [
+  phoneValidation
+]
 
 module.exports = {
   // Required data: firstName, lastName, phone, password, tosAgreement
@@ -108,8 +113,26 @@ module.exports = {
       }
     })
   },
+  // Required data: phone
+  // Optional data: none
   get: (data, callback) => {
-    callback(200)
+    // Check that the phone number is valid
+    if (!validate(userGetValidationConfig, data.query)) {
+      return callback(400, { message: 'data validation failed'})
+    }
+
+    const phone = data.query.phone
+
+    read('users', phone, (error, user) => {
+      if (!error && user) {
+        // Remove the hashed password from the user before returning to requestor
+        delete user.hashedPassword
+
+        callback(200, user)
+      } else {
+        callback(404)
+      }
+    })
   },
   put: (data, callback) => {
     callback(200)

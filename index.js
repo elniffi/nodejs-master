@@ -74,10 +74,12 @@ const unifiedServer = (req, res) => {
 
     const boundSender = sender.bind(null, res)
 
-    // assume payload is json string
-    // TODO: What if there is no payload?!
     try {
-      payload = JSON.parse(buffer)
+      if (typeof buffer === 'string' && buffer.length) {
+        payload = JSON.parse(buffer)
+      } else {
+        payload = null
+      }
     } catch (error) {
       return boundSender(400)
     }

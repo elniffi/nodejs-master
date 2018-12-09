@@ -47,7 +47,11 @@ module.exports = {
     const filePath = buildFilePath(directory, filename)
 
     fs.readFile(filePath, 'utf-8', (error, data) => {
-      callback(error, data)
+      if (!error && data) {
+        callback(error, JSON.parse(data))
+      } else {
+        callback(error, data)
+      }
     })
   },
   update: (directory, filename, data, callback) => {
