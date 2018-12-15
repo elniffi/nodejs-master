@@ -2,7 +2,8 @@ const helpers = require('../helpers')
 const {
   read,
   create,
-  update
+  update,
+  remove
 } = require('../data')
 const {
   validators: {
@@ -18,12 +19,13 @@ const phoneValidation = {
   key: 'phone',
   requirements: [
     isRequired,
-    isString, 
+    isString,
+    hasLength, 
     (data) => data.length === 10
   ]
 }
 
-const usersPostValidationConfig = [
+const userPostValidationConfig = [
   {
     key: 'firstName',
     requirements: [
@@ -85,6 +87,9 @@ const userPutValidationConfig = [
     ]
   }
 ]
+const userDeleteValidationConfig = [
+  phoneValidation
+]
 
 //TODO: Get, Update and Delete should only work for authenticated users on their own user only
 module.exports = {
@@ -92,7 +97,7 @@ module.exports = {
   // Optional data: none
   post: (data, callback) => {
     // if payload validation fails we should return a 400
-    if (!validate(usersPostValidationConfig, data.payload)) {
+    if (!validate(userPostValidationConfig, data.payload)) {
       return callback(400, { message: 'data validation failed'})
     }
 
@@ -204,7 +209,28 @@ module.exports = {
         }
       })
   },
+  // Required data: phone
+  // Optional data: none
   delete: (data, callback) => {
-    callback(200)
+    // if payload validation fails we should return a 400
+    if (!validate(userDeleteValidationConfig, data.payload)) {
+      return callback(400, { message: 'data validation failed'})
+    }
+
+    const { phone } = data.payload
+
+    read('users', phone, (error, userData) => {
+      if (!error) {
+        remove('users', phone, (error) => {
+          if (!error) {
+            callback(204)
+          } else {
+            callback(500)
+          }
+        })
+      } else {
+        callback(404)
+      }
+    })
   }
 }

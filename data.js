@@ -89,7 +89,7 @@ module.exports = {
       }
     })
   },
-  delete: (directory, filename, callback) => {
+  remove: (directory, filename, callback) => {
     const filePath = buildFilePath(directory, filename)
 
     // Unlink the file
