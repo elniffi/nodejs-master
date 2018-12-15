@@ -220,7 +220,7 @@ module.exports = {
     const { phone } = data.payload
 
     read('users', phone, (error, userData) => {
-      if (!error) {
+      if (!error && userData) {
         remove('users', phone, (error) => {
           if (!error) {
             callback(204)
