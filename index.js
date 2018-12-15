@@ -14,13 +14,15 @@ const fs = require('fs')
 const config = require('./config')
 const {
   ping,
-  users
+  users,
+  tokens
 } = require('./handlers')
 
 // Define a request router
 const router = {
   ping,
   users
+  tokens
 }
 
 const sender = (res, statusCode = 200, payload = {}) => {
