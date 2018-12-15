@@ -1,7 +1,8 @@
 const helpers = require('../helpers')
 const {
   read,
-  create
+  create,
+  update
 } = require('../data')
 const {
   validators: {
@@ -59,6 +60,30 @@ const usersPostValidationConfig = [
 ]       
 const userGetValidationConfig = [
   phoneValidation
+]
+const userPutValidationConfig = [
+  phoneValidation,
+  {
+    key: 'firstName',
+    requirements: [
+      isString,
+      hasLength
+    ]
+  },
+  {
+    key: 'lastName',
+    requirements: [
+      isString,
+      hasLength
+    ]
+  },
+  {
+    key: 'password',
+    requirements: [
+      isString,
+      hasLength
+    ]
+  }
 ]
 
 //TODO: Get, Update and Delete should only work for authenticated users on their own user only
@@ -138,13 +163,46 @@ module.exports = {
   // Required data: phone
   // Optional data: firstName, lastName, password, tosAgreement (at least one must be specified)
   put: (data, callback) => {
-    
+      // Check that the phone number is valid
+      // and if the other optional fields are set that they also are valid.
+      if (!validate(userPutValidationConfig, data.payload)) {
+        return callback(400, { message: 'data validation failed'})
+      }
 
+      const { phone, firstName, lastName, password } = data.payload
 
+      if (!firstName && !lastName && !password) {
+        return callback(400, { message: 'data validation failed'})
+      }
 
+      read('users', phone, (error, userData) => {
+        if (!error && userData) {
 
+          const updatedUserData = { ...userData }
 
-    
+          if (firstName) {
+            updatedUserData.firstName = firstName
+          }
+
+          if (lastName) {
+            updatedUserData.lastName = lastName
+          }
+
+          if (password) {
+            updatedUserData.hashedPassword = helpers.hash(password)
+          }
+
+          update('users', phone, updatedUserData, (error) => {
+            if (!error) {
+              callback(200)
+            } else {
+              callback(500)
+            }
+          })
+        } else {
+          callback(404)
+        }
+      })
   },
   delete: (data, callback) => {
     callback(200)
