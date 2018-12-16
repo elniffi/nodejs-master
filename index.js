@@ -21,7 +21,7 @@ const {
 // Define a request router
 const router = {
   ping,
-  users
+  users,
   tokens
 }
 

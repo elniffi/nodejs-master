@@ -6,89 +6,61 @@ const {
   remove
 } = require('../data')
 const {
-  validators: {
-    isRequired,
-    isString,
-    isBoolean,
-    hasLength
-  },
-  validate
+  requirements,
+  validator
 } = require('../validation')
-
-const phoneValidation = {
-  key: 'phone',
-  requirements: [
-    isRequired,
-    isString,
-    hasLength, 
-    (data) => data.length === 10
-  ]
-}
 
 const userPostValidationConfig = [
   {
     key: 'firstName',
-    requirements: [
-      isRequired,
-      isString,
-      hasLength
-    ]
+    requirements: requirements.firstName
   },
   {
     key: 'lastName',
-    requirements: [
-      isRequired,
-      isString,
-      hasLength
-    ]
+    requirements: requirements.lastName
   },
-  phoneValidation,
+  {
+    key: 'phone',
+    requirements: requirements.phone
+  },
   {
     key: 'password',
-    requirements: [
-      isRequired,
-      isString,
-      hasLength
-    ]
+    requirements: requirements.password
   },
   {
     key: 'tosAgreement',
-    requirements: [
-      isRequired,
-      isBoolean,
-      (data) => data === true
-    ]
+    requirements: requirements.tosAgreement
   }  
 ]       
 const userGetValidationConfig = [
-  phoneValidation
+  {
+    key: 'phone',
+    requirements: requirements.phone
+  }
 ]
 const userPutValidationConfig = [
-  phoneValidation,
   {
     key: 'firstName',
-    requirements: [
-      isString,
-      hasLength
-    ]
+    requirements: requirements.firstName
   },
   {
     key: 'lastName',
-    requirements: [
-      isString,
-      hasLength
-    ]
+    requirements: requirements.lastName
+  },
+  {
+    key: 'phone',
+    requirements: requirements.phone
   },
   {
     key: 'password',
-    requirements: [
-      isString,
-      hasLength
-    ]
+    requirements: requirements.password
   }
 ]
 const userDeleteValidationConfig = [
-  phoneValidation
+  {
+    key: 'phone',
+    requirements: requirements.phone
+  }
 ]
 
 //TODO: Get, Update and Delete should only work for authenticated users on their own user only
@@ -97,7 +69,7 @@ module.exports = {
   // Optional data: none
   post: (data, callback) => {
     // if payload validation fails we should return a 400
-    if (!validate(userPostValidationConfig, data.payload)) {
+    if (!validator(userPostValidationConfig, data.payload)) {
       return callback(400, { message: 'data validation failed'})
     }
 
@@ -148,7 +120,7 @@ module.exports = {
   // Optional data: none
   get: (data, callback) => {
     // Check that the phone number is valid
-    if (!validate(userGetValidationConfig, data.query)) {
+    if (!validator(userGetValidationConfig, data.query)) {
       return callback(400, { message: 'data validation failed'})
     }
 
@@ -170,7 +142,7 @@ module.exports = {
   put: (data, callback) => {
       // Check that the phone number is valid
       // and if the other optional fields are set that they also are valid.
-      if (!validate(userPutValidationConfig, data.payload)) {
+      if (!validator(userPutValidationConfig, data.payload)) {
         return callback(400, { message: 'data validation failed'})
       }
 
@@ -213,7 +185,7 @@ module.exports = {
   // Optional data: none
   delete: (data, callback) => {
     // if payload validation fails we should return a 400
-    if (!validate(userDeleteValidationConfig, data.payload)) {
+    if (!validator(userDeleteValidationConfig, data.payload)) {
       return callback(400, { message: 'data validation failed'})
     }
 
