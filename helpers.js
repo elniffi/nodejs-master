@@ -10,6 +10,8 @@ const {
   hashingSecret
 } = require('./config')
 
+const possibleCharacters = 'abcdefghijklmnopqrstuvxyz0123456789'
+
 module.exports = {
   /**
    * Create a sha256 hash
@@ -24,5 +26,20 @@ module.exports = {
       .createHmac('sha256', hashingSecret)
       .update(password)
       .digest('hex')
+  },
+  createRandomString: (length) => {
+    if(typeof length !== 'number' || length <= 0 || length !== Math.floor(length)) {
+      return false
+    }
+
+    let result = ''
+
+    for (let i = 0; i < length; i++) {
+      const randomPosition = Math.floor(Math.random() * possibleCharacters.length)
+      const selectedCharacther = possibleCharacters.charAt(randomPosition)
+      result += selectedCharacther
+    }
+
+    return result
   }
 }

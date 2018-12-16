@@ -1,4 +1,6 @@
-const helpers = require('../helpers')
+const {
+  hash
+} = require('../helpers')
 const {
   read,
   create,
@@ -88,7 +90,7 @@ module.exports = {
       // If any error we assume the user exists
       if (error) {
         // Hash the password
-        const hashedPassword = helpers.hash(password)
+        const hashedPassword = hash(password)
         
         if (!hashedPassword) {
           return callback(500, { message: 'failed to hash user password'})
@@ -166,7 +168,7 @@ module.exports = {
           }
 
           if (password) {
-            updatedUserData.hashedPassword = helpers.hash(password)
+            updatedUserData.hashedPassword = hash(password)
           }
 
           update('users', phone, updatedUserData, (error) => {
