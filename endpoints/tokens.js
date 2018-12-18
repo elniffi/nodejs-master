@@ -8,6 +8,11 @@ const {
 } = require('../data')
 const {
   requirements,
+  validators: {
+    isRequired,
+    isString,
+    hasLength
+  },
   validator
 } = require('../validation')
 
@@ -19,6 +24,18 @@ const tokensPostValidationConfig = [
   {
     key: 'password',
     requirements: requirements.password
+  }
+]
+
+const tokensGetValidationConfig = [
+  {
+    key: 'id',
+    requirements: [
+      isRequired,
+      isString,
+      hasLength,
+      id => id.length === 36
+    ]
   }
 ]
 
@@ -65,8 +82,23 @@ module.exports = {
       }
     })
   },
+  // Required data: id
+  // Optional data: none
   get: (data, callback) => {
-    callback(200)
+    // if payload validation fails we should return a 400
+    if (!validator(tokensGetValidationConfig, data.query)) {
+      return callback(400, { message: 'data validation failed'})
+    }
+
+    const { id } = data.query
+
+    read('tokens', id, (error, tokenData) => {
+      if (!error && tokenData) {
+        callback(200, tokenData)
+      } else {
+        callback(404)
+      }
+    })
   },
   put: (data, callback) => {
     callback(200)
