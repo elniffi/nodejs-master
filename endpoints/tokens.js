@@ -100,6 +100,8 @@ module.exports = {
       }
     })
   },
+  // Required data: id, extend
+  // Optional data: none
   put: (data, callback) => {
     callback(200)
   },
