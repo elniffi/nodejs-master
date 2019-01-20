@@ -12,6 +12,10 @@ const {
   validator
 } = require('../validation')
 
+const {
+  verifyToken
+} = require('../utils/authenticate')
+
 const userPostValidationConfig = [
   {
     key: 'firstName',
@@ -125,17 +129,24 @@ module.exports = {
     if (!validator(userGetValidationConfig, data.query)) {
       return callback(400, { message: 'data validation failed'})
     }
-
+    
+    const token = data.headers.token
     const phone = data.query.phone
 
-    read('users', phone, (error, user) => {
-      if (!error && user) {
-        // Remove the hashed password from the user before returning to requestor
-        delete user.hashedPassword
-
-        callback(200, user)
+    verifyToken(token, phone, isValid => {
+      if (isValid) {
+        read('users', phone, (error, user) => {
+          if (!error && user) {
+            // Remove the hashed password from the user before returning to requestor
+            delete user.hashedPassword
+    
+            callback(200, user)
+          } else {
+            callback(404)
+          }
+        })
       } else {
-        callback(404)
+        callback(401)
       }
     })
   },
@@ -148,40 +159,43 @@ module.exports = {
         return callback(400, { message: 'data validation failed'})
       }
 
+      const token = data.headers.token
       const { phone, firstName, lastName, password } = data.payload
 
-      if (!firstName && !lastName && !password) {
-        return callback(400, { message: 'data validation failed'})
-      }
-
-      read('users', phone, (error, userData) => {
-        if (!error && userData) {
-
-          const updatedUserData = { ...userData }
-
-          if (firstName) {
-            updatedUserData.firstName = firstName
-          }
-
-          if (lastName) {
-            updatedUserData.lastName = lastName
-          }
-
-          if (password) {
-            updatedUserData.hashedPassword = hash(password)
-          }
-
-          update('users', phone, updatedUserData, (error) => {
-            if (!error) {
-              callback(200)
+      verifyToken(token, phone, isValid => {
+        if (isValid) {
+          read('users', phone, (error, userData) => {
+            if (!error && userData) {
+    
+              const updatedUserData = { ...userData }
+    
+              if (firstName) {
+                updatedUserData.firstName = firstName
+              }
+    
+              if (lastName) {
+                updatedUserData.lastName = lastName
+              }
+    
+              if (password) {
+                updatedUserData.hashedPassword = hash(password)
+              }
+    
+              update('users', phone, updatedUserData, (error) => {
+                if (!error) {
+                  callback(200)
+                } else {
+                  callback(500)
+                }
+              })
             } else {
-              callback(500)
+              callback(404)
             }
           })
         } else {
-          callback(404)
+          callback(401)
         }
-      })
+      }) 
   },
   // Required data: phone
   // Optional data: none
@@ -191,19 +205,27 @@ module.exports = {
       return callback(400, { message: 'data validation failed'})
     }
 
+    const token = data.headers.token
     const { phone } = data.payload
 
-    read('users', phone, (error, userData) => {
-      if (!error && userData) {
-        remove('users', phone, (error) => {
-          if (!error) {
-            callback(204)
+    verifyToken(token, phone, isValid => {
+      if (isValid) {
+        read('users', phone, (error, userData) => {
+          if (!error && userData) {
+            // TODO: This should also cleanup any tokens that belongs to that user
+            remove('users', phone, (error) => {
+              if (!error) {
+                callback(204)
+              } else {
+                callback(500)
+              }
+            })
           } else {
-            callback(500)
+            callback(404)
           }
         })
       } else {
-        callback(404)
+        callback(401)
       }
     })
   }
