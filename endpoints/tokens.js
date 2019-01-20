@@ -5,7 +5,8 @@ const {
 const {
   read,
   create,
-  update
+  update,
+  remove
 } = require('../data')
 const {
   requirements,
@@ -39,6 +40,13 @@ const tokensPutValidationConfig = [
       isBoolean,
       (data) => data === true
     ]
+  }
+]
+
+const tokensDeleteValidationConfig = [
+  {
+    key: 'id',
+    requirements: requirements.id
   }
 ]
 
@@ -132,18 +140,39 @@ module.exports = {
             if (!error) {
               callback(201)
             } else {
-              callback(500, { message: 'could not update tokens expiration'})
+              callback(500)
             }
           })
         } else {
-          callback(400, { message: 'token has expired'})
+          callback(400)
         }
       } else {
         callback(404)
       }
     })  
   },
+  // Required data: id
+  // Optional data: none
   delete: (data, callback) => {
-    callback(200)
+    // if payload validation fails we should return a 400
+    if (!validator(tokensDeleteValidationConfig, data.payload)) {
+      return callback(400, { message: 'data validation failed'})
+    }
+
+    const { id } = data.payload
+
+    read('tokens', id, (error, tokenData) => {
+      if (!error && tokenData) {
+        remove('tokens', id, (error) => {
+          if (!error) {
+            callback(204)
+          } else {
+            callback(500)
+          }
+        })
+      } else {
+        callback(404)
+      }
+    })
   }
 }
