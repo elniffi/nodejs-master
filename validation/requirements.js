@@ -25,11 +25,17 @@ module.exports = {
     isRequired,
     isString,
     hasLength, 
-    (data) => data.length === 10
+    data => data.length === 10
   ],
   tosAgreement: [
     isRequired,
     isBoolean,
-    (data) => data === true
+    data => data === true
+  ],
+  id: [
+    isRequired,
+    isString,
+    hasLength,
+    data => data.length === 36
   ]
 }

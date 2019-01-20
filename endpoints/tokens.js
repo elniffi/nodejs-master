@@ -4,14 +4,14 @@ const {
 } = require('../helpers')
 const {
   read,
-  create
+  create,
+  update
 } = require('../data')
 const {
   requirements,
   validators: {
     isRequired,
-    isString,
-    hasLength
+    isBoolean
   },
   validator
 } = require('../validation')
@@ -27,15 +27,25 @@ const tokensPostValidationConfig = [
   }
 ]
 
+const tokensPutValidationConfig = [
+  {
+    key: 'id',
+    requirements: requirements.id
+  },
+  {
+    key: 'extend',
+    requirements: [
+      isRequired,
+      isBoolean,
+      (data) => data === true
+    ]
+  }
+]
+
 const tokensGetValidationConfig = [
   {
     key: 'id',
-    requirements: [
-      isRequired,
-      isString,
-      hasLength,
-      id => id.length === 36
-    ]
+    requirements: requirements.id
   }
 ]
 
@@ -45,7 +55,7 @@ module.exports = {
   post: (data, callback) => {
     // if payload validation fails we should return a 400
     if (!validator(tokensPostValidationConfig, data.payload)) {
-      return callback(400, { message: 'data validation failed'})
+      return callback(400, { message: 'data validation failed' })
     }
 
     const { phone, password } = data.payload
@@ -53,7 +63,7 @@ module.exports = {
     read('users', phone, (error, userData) => {
       if (!error && userData) {
         const hashedPassword = hash(password)
-         
+
         // the provided password must match the password the user passed in after it also has been hashed
         if (userData.hashedPassword === hashedPassword) {
           // if it's an authenticated user then go ahead and create the token for that user
@@ -87,7 +97,7 @@ module.exports = {
   get: (data, callback) => {
     // if payload validation fails we should return a 400
     if (!validator(tokensGetValidationConfig, data.query)) {
-      return callback(400, { message: 'data validation failed'})
+      return callback(400, { message: 'data validation failed' })
     }
 
     const { id } = data.query
@@ -103,7 +113,35 @@ module.exports = {
   // Required data: id, extend
   // Optional data: none
   put: (data, callback) => {
-    callback(200)
+    // if payload validation fails we should return a 400
+    if (!validator(tokensPutValidationConfig, data.payload)) {
+      return callback(400, { message: 'data validation failed' })
+    }
+
+    const { id } = data.payload
+
+    read('tokens', id, (error, tokenData) => {
+      if (!error && tokenData) {
+        // Check to make sure token has not already expired
+        if (tokenData.expires > Date.now()) {
+          // Set the expiration an hour from now
+          tokenData.expires = Date.now() * 1000 * 60 * 60
+
+          // Store the updated expires 
+          update('tokens', id, tokenData, error => {
+            if (!error) {
+              callback(201)
+            } else {
+              callback(500, { message: 'could not update tokens expiration'})
+            }
+          })
+        } else {
+          callback(400, { message: 'token has expired'})
+        }
+      } else {
+        callback(404)
+      }
+    })  
   },
   delete: (data, callback) => {
     callback(200)
