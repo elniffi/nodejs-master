@@ -15,14 +15,16 @@ const config = require('./config')
 const {
   ping,
   users,
-  tokens
+  tokens,
+  checks
 } = require('./handlers')
 
 // Define a request router
 const router = {
   ping,
   users,
-  tokens
+  tokens,
+  checks
 }
 
 const sender = (res, statusCode = 200, payload = {}) => {
