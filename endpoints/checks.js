@@ -13,6 +13,10 @@ const {
 } = require('../data')
 
 const {
+  verifyToken
+} = require('../utils/authenticate')
+
+const {
   requirements,
   validators: {
     isRequired,
@@ -26,6 +30,17 @@ const {
   validator
 } = require('../validation')
 
+const checksGetValidationConfig = [
+  {
+    key: 'id',
+    requirements: [
+      isRequired,
+      isString,
+      hasLength,
+      (data) => data.length === 20
+    ]
+  }
+]
 const checksPostValidationConifg = [
   {
     key: 'protocol',
@@ -71,8 +86,34 @@ const checksPostValidationConifg = [
 ]
 
 module.exports = {
-  get: () => {
+  // Required data: id
+  // Optional data: none
+  get: (data, callback) => {
+    if (!validator(checksGetValidationConfig, data.query)) {
+      return callback(400, { message: 'data validation failed'})
+    }
 
+    const {
+      id
+    } = data.query
+
+    const token = data.headers.token
+
+    // Lookup the check
+    read('checks', id, (error, checkData) => {
+      if (!error && checkData) {
+        // Verify that the token is valid and belongs to the user who created the check
+        verifyToken(token, checkData.userPhone, isValid => {
+          if (isValid) {
+            callback(200, checkData)
+          } else {
+            callback(401)
+          }
+        })
+      } else {
+        callback(404)
+      }
+    })
   },
   // Required data: protocol, url, method, successCodes, timeoutSeconds
   // Optional data: none
