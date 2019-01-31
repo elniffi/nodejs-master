@@ -8,5 +8,9 @@ module.exports = {
   // but that fallback should obviously only happen if the value is NOT defined.
   isBoolean: data => typeof data === 'boolean' || !isDefined(data),
   isString: data => typeof data === 'string' || !isDefined(data),
-  hasLength: data => (data && data.length) ? data.length > 0 : !isDefined(data)
+  hasLength: data => (data && data.length) ? data.length > 0 : !isDefined(data),
+  isEnum: (...valid) => (data) => valid.includes(data),
+  isArray: data => Array.isArray(data),
+  isNumber: data => typeof data === 'number',
+  isWholeNumber: data => data % 1 === 0 
 }

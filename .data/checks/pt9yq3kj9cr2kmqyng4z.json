@@ -1,0 +1,12 @@
+{
+  "id": "pt9yq3kj9cr2kmqyng4z",
+  "userPhone": "0123456789",
+  "method": "get",
+  "protocol": "https",
+  "url": "www.google.se",
+  "successCodes": [
+    200,
+    201
+  ],
+  "timeoutSeconds": 5
+}

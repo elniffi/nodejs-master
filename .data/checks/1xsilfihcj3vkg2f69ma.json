@@ -1,0 +1,12 @@
+{
+  "id": "1xsilfihcj3vkg2f69ma",
+  "userPhone": "0123456789",
+  "method": "get",
+  "protocol": "https",
+  "url": "www.google.se",
+  "successCodes": [
+    200,
+    201
+  ],
+  "timeoutSeconds": 5
+}
