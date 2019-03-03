@@ -52,6 +52,7 @@ const tokensDeleteValidationConfig = [
 
 const tokensGetValidationConfig = [
   {
+    location: 'query',
     key: 'id',
     requirements: requirements.id
   }
@@ -62,7 +63,7 @@ module.exports = {
   // Optional data: none
   post: (data, callback) => {
     // if payload validation fails we should return a 400
-    if (!validator(tokensPostValidationConfig, data.payload)) {
+    if (!validator(tokensPostValidationConfig, data)) {
       return callback(400, { message: 'data validation failed' })
     }
 
@@ -104,7 +105,7 @@ module.exports = {
   // Optional data: none
   get: (data, callback) => {
     // if payload validation fails we should return a 400
-    if (!validator(tokensGetValidationConfig, data.query)) {
+    if (!validator(tokensGetValidationConfig, data)) {
       return callback(400, { message: 'data validation failed' })
     }
 
@@ -122,7 +123,7 @@ module.exports = {
   // Optional data: none
   put: (data, callback) => {
     // if payload validation fails we should return a 400
-    if (!validator(tokensPutValidationConfig, data.payload)) {
+    if (!validator(tokensPutValidationConfig, data)) {
       return callback(400, { message: 'data validation failed' })
     }
 
@@ -155,7 +156,7 @@ module.exports = {
   // Optional data: none
   delete: (data, callback) => {
     // if payload validation fails we should return a 400
-    if (!validator(tokensDeleteValidationConfig, data.payload)) {
+    if (!validator(tokensDeleteValidationConfig, data)) {
       return callback(400, { message: 'data validation failed'})
     }
 

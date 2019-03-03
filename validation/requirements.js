@@ -37,5 +37,10 @@ module.exports = {
     isString,
     hasLength,
     data => data.length === 36
+  ],
+  token: [
+    isRequired,
+    isString,
+    hasLength
   ]
 }

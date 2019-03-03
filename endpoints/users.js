@@ -9,12 +9,23 @@ const {
 } = require('../data')
 const {
   requirements,
-  validator
+  validator,
+  validators: {
+    isRequired,
+    isString,
+    hasLength
+  }
 } = require('../validation')
 
 const {
   verifyToken
 } = require('../utils/authenticate')
+
+const tokenValidationConfig =   {
+  location: 'headers',
+  key: 'token',
+  requirements: requirements.token
+}
 
 const userPostValidationConfig = [
   {
@@ -39,12 +50,15 @@ const userPostValidationConfig = [
   }  
 ]       
 const userGetValidationConfig = [
+  tokenValidationConfig,
   {
+    location: 'query',
     key: 'phone',
     requirements: requirements.phone
   }
 ]
 const userPutValidationConfig = [
+  tokenValidationConfig,
   {
     key: 'firstName',
     requirements: requirements.firstName
@@ -63,6 +77,7 @@ const userPutValidationConfig = [
   }
 ]
 const userDeleteValidationConfig = [
+  tokenValidationConfig,
   {
     key: 'phone',
     requirements: requirements.phone
@@ -75,7 +90,7 @@ module.exports = {
   // Optional data: none
   post: (data, callback) => {
     // if payload validation fails we should return a 400
-    if (!validator(userPostValidationConfig, data.payload)) {
+    if (!validator(userPostValidationConfig, data)) {
       return callback(400, { message: 'data validation failed'})
     }
 
@@ -126,7 +141,7 @@ module.exports = {
   // Optional data: none
   get: (data, callback) => {
     // Check that the phone number is valid
-    if (!validator(userGetValidationConfig, data.query)) {
+    if (!validator(userGetValidationConfig, data)) {
       return callback(400, { message: 'data validation failed'})
     }
     
@@ -155,7 +170,7 @@ module.exports = {
   put: (data, callback) => {
       // Check that the phone number is valid
       // and if the other optional fields are set that they also are valid.
-      if (!validator(userPutValidationConfig, data.payload)) {
+      if (!validator(userPutValidationConfig, data)) {
         return callback(400, { message: 'data validation failed'})
       }
 
@@ -201,7 +216,7 @@ module.exports = {
   // Optional data: none
   delete: (data, callback) => {
     // if payload validation fails we should return a 400
-    if (!validator(userDeleteValidationConfig, data.payload)) {
+    if (!validator(userDeleteValidationConfig, data)) {
       return callback(400, { message: 'data validation failed'})
     }
 

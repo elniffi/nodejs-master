@@ -1,5 +1,5 @@
 const {
-  maxChecks 
+  maxChecks
 } = require('../config')
 
 const {
@@ -25,7 +25,8 @@ const {
     hasLength,
     isEnum,
     isNumber,
-    isWholeNumber
+    isWholeNumber,
+    isDefined
   },
   validator
 } = require('../validation')
@@ -33,6 +34,7 @@ const {
 const checksGetValidationConfig = [
   {
     key: 'id',
+    location: 'query',
     requirements: [
       isRequired,
       isString,
@@ -85,12 +87,52 @@ const checksPostValidationConifg = [
   },
 ]
 
+const checksPutValidationConfig = [
+  { ...checksGetValidationConfig, ...{ location: 'payload' } },
+  {
+    key: 'protocol',
+    requirements: [
+      isString,
+      isEnum('http', 'https')
+    ]
+  },
+  {
+    key: 'url',
+    requirements: [
+      isString,
+      hasLength
+    ]
+  },
+  {
+    key: 'method',
+    requirements: [
+      isString,
+      isEnum('get', 'post', 'put', 'delete')
+    ]
+  },
+  {
+    key: 'successCodes',
+    requirements: [
+      isArray,
+      hasLength
+    ]
+  },
+  {
+    key: 'timeoutSeconds',
+    requirements: [
+      isNumber,
+      isWholeNumber,
+      data => (data >= 1 && data <= 5) || !isDefined(data)
+    ]
+  },
+]
+
 module.exports = {
   // Required data: id
   // Optional data: none
   get: (data, callback) => {
     if (!validator(checksGetValidationConfig, data.query)) {
-      return callback(400, { message: 'data validation failed'})
+      return callback(400, { message: 'data validation failed' })
     }
 
     const {
@@ -127,13 +169,13 @@ module.exports = {
       protocol,
       url,
       method,
-      successCodes, 
+      successCodes,
       timeoutSeconds
     } = data.payload
 
     const token = data.headers.token
 
-    if (typeof token === 'string' &&  token) {
+    if (typeof token === 'string' && token) {
       // NOTE: don't we also need to check the timeout for the token.
       read('tokens', token, (error, tokenData) => {
         // Token exists / is valid
@@ -145,7 +187,7 @@ module.exports = {
             if (!error && userData) {
               // Default to an empty array if none exists
               const userChecks = (Array.isArray(userData.checks)) ? userData.checks : []
-              
+
               // Verify that the number of checks is less than the maximum
               if (userChecks.length < maxChecks) {
                 // Create a random id for the check
@@ -174,16 +216,16 @@ module.exports = {
                       if (!error) {
                         callback(201, check)
                       } else {
-                        callback(500, { message: 'could not persist user'})
+                        callback(500, { message: 'could not persist user' })
                       }
                     })
 
                   } else {
-                    callback(500, { message: 'could not persist the check'})
+                    callback(500, { message: 'could not persist the check' })
                   }
-                }) 
+                })
               } else {
-                callback(400, { message: `maximum number of checks reached (${maxChecks})`})
+                callback(400, { message: `maximum number of checks reached (${maxChecks})` })
               }
             } else {
               callback(401)
@@ -194,12 +236,47 @@ module.exports = {
         }
       })
     } else {
-      callback(400, { message: 'data validation failed'})
+      callback(400, { message: 'data validation failed' })
     }
-    
-  },
-  put: () => {
 
+  },
+  // Required data: id
+  // Optional data: protocol, url, method, successCodes, timeoutSeconds [at least one of the optional pieces of data]
+  put: (data, callback) => {
+    if (!validator(checksPutValidationConfig, data.payload)) {
+      return callback(400, { message: 'data validation failed' })
+    }
+
+    // We require at least one of the optional fields
+    if (!data.protocol && !data.url && !data.method && !data.successCodes && !data.timeoutSeconds) {
+      return callback(400, { message: 'data validation failed' })
+    }
+
+    read('checks', id, (error, checkData) => {
+      if (!error && checkData) {
+        const token = data.headers.token
+
+        verifyToken(token, checkData.userPhone, isValid => {
+          if (isValid) {
+            // Take currently saved values and override with anything set in the payload
+            const toSave = { ...checkData, ...payload.data }
+
+            // Store the updated object
+            update('checks', id, checkData, error => {
+              if (!error) {
+                callback(200)
+              } else {
+                callback(500)
+              }
+            })
+          } else {
+            callback(401)
+          }
+        })
+      } else {
+        callback(404)
+      }
+    })
   },
   delete: () => {
 
